@@ -21,7 +21,7 @@ This is a SageTV MediaFormatParser plugin that utilizes FFmpeg
   - force_full_content_reindex=true
 - Turn sagetv service back on
   
-## Diabling Instructions
+## Disabling Instructions
 - Shutdown sagetv service
 - Modify sage.properties
   - remove line mediafile_mediaformat_parser_plugin=jvl.mediaformat.MediaFormatParserPlugin
