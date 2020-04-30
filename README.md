@@ -2,7 +2,9 @@
 This is a SageTV MediaFormatParser plugin that utilizes FFmpeg
 
 ## Installation Instructions
-*Note: As of right now this is only available for windows installs*
+
+*Note: As of right now this is only available for x64 windows installs of SageTV*
+
 - Shutdown sagetv service
 - Backup sagetv folder
 - Download the pre-release version of the Sage.jar and place it into the root of the SageTV folder
