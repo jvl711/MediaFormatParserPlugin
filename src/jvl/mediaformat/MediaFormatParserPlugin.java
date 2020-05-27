@@ -2,12 +2,18 @@
 package jvl.mediaformat;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jvl.FFmpeg.jni.AVCodec;
 import jvl.FFmpeg.jni.AVCodecParameters;
 import jvl.FFmpeg.jni.AVFormatContext;
 import jvl.FFmpeg.jni.AVMediaType;
 import jvl.FFmpeg.jni.AVStream;
+import sage.SageTV;
+import sage.SageTVPlugin;
 import sage.media.format.AudioFormat;
 import sage.media.format.BitstreamFormat;
 import sage.media.format.ContainerFormat;
@@ -22,8 +28,12 @@ import sage.media.format.VideoFormat;
  * 
  * @author Joshua Lewis (jvl711)
  */
-public class MediaFormatParserPlugin implements sage.media.format.FormatParserPlugin
+public class MediaFormatParserPlugin implements sage.media.format.FormatParserPlugin, SageTVPlugin 
 {
+    public MediaFormatParserPlugin(sage.SageTVPluginRegistry stpr, boolean reset)
+    {
+        
+    }
 
     @Override
     public ContainerFormat parseFormat(File file)
@@ -80,8 +90,19 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                  }
                  else if(avparm.getCodecType() == AVMediaType.AUDIO)
                  {
+                     
                      AudioFormat audio = new AudioFormat();
 
+                     /*
+                      * If the first stream is audio lets not process for now.
+                      * Need to properly handle metadata and audio files that
+                      * include video tracks.
+                      */
+                     if(i == 0)
+                     {
+                         return null;
+                     }
+                     
                      audio.setFormatName(FormatParser.substituteName(avcodec.getName()));
                      //audio.setAudioTransport(); TODO: See if I can find this 
                      audio.setChannels(avparm.getChannels());
@@ -100,7 +121,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                      subpicture.setLanguage(avstream.getLanguage());
 
                      subpicture.setOrderIndex(i);
-                     //subpicture.setForced(avstream.isForced()); TODO: Add back when I have the right Sage.jar version
+                     subpicture.setForced(avstream.isForced());
                      streams.add(subpicture);
                  }
                  else if(avparm.getCodecType() == AVMediaType.DATA) { }
@@ -128,5 +149,59 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
         
         return format;
     }
+
+    @Override
+    public void start()
+    {
+        //Set the property string
+        Object ret;
+        try
+        {
+            SageTV.api("SetServerProperty", new Object [] {"mediafile_mediaformat_parser_plugin", "jvl.mediaformat.MediaFormatParserPlugin"});
+        } 
+        catch (InvocationTargetException ex)
+        {
+            System.out.println("Error setting server property for MediaFormatParserPlugin");
+        }
+    }
+
+    @Override
+    public void stop(){}
+
+    @Override
+    public void destroy() {}
+
+    @Override
+    public String[] getConfigSettings(){return null;}
+
+    @Override
+    public String getConfigValue(String string){ return null; }
+
+    @Override
+    public String[] getConfigValues(String string){return null;}
+
+    @Override
+    public int getConfigType(String string){return 1;}
+
+    @Override
+    public void setConfigValue(String string, String string1){}
+
+    @Override
+    public void setConfigValues(String string, String[] strings){}
+
+    @Override
+    public String[] getConfigOptions(String string){return null;}
+
+    @Override
+    public String getConfigHelpText(String string){return null;}
+
+    @Override
+    public String getConfigLabel(String string){return null;}
+
+    @Override
+    public void resetConfig(){}
+
+    @Override
+    public void sageEvent(String string, Map map){}
     
 }
