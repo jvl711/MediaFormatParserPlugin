@@ -5,8 +5,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jvl.FFmpeg.jni.AVCodec;
 import jvl.FFmpeg.jni.AVCodecParameters;
 import jvl.FFmpeg.jni.AVFormatContext;
@@ -55,7 +53,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
             for(int i = 0; i < avformat.getNumberOfStreams(); i++)
             {
                  AVCodecParameters avparm = avformat.getAVCodecParameters(i);
-                 AVCodec avcodec = AVCodec.getAVCodec(avparm);
+                 AVCodec avcodec = AVCodec.getAVCodecDecoder(avparm);
                  AVStream avstream = avformat.getAVStream(i);
 
                  if(avparm.getCodecType() == AVMediaType.VIDEO)
@@ -100,6 +98,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                       */
                      if(i == 0)
                      {
+                         System.out.println("MediaFormatParserPlugin: First stream is audio, skip processing file.");
                          return null;
                      }
                      

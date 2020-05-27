@@ -10,6 +10,7 @@
 <project name="MediaFormatParserPlugin" default="default" basedir=".">
     <description>Builds, tests, and runs the project MediaFormatParserPlugin.</description>
     <import file="nbproject/build-impl.xml"/>
+    <property name="version" value="0.2-alpha"/>
     <!--
 
     There exist several targets which are by default empty and which can be 
@@ -70,4 +71,10 @@
     nbproject/build-impl.xml file. 
 
     -->
+    
+    <target name="-post-jar">
+        <move file="${dist.jar}" tofile="${dist.jar.dir}/MediaFormatParserPlugin_v${version}.jar"/>
+        <checksum file="${dist.jar.dir}/MediaFormatParserPlugin_v${version}.jar" fileext=".md5"/>
+    </target>
+    
 </project>
