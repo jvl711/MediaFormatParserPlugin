@@ -32,6 +32,11 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
     {
         
     }
+    
+    public MediaFormatParserPlugin()
+    { 
+        //This is a blank constructructor called when creating the FormatParserPlugin instance
+    }
 
     @Override
     public ContainerFormat parseFormat(File file)
