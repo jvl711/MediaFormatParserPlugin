@@ -1,4 +1,8 @@
 # CHANGES
+
+## v.0.3-alpha
+* Added the ability to get thumbnails from media files
+* Added the ability to get metadata from the container 
   
 ## v.0.2-alpha
 * Disabling processing of audio files for now.  Need to work on Metadata.
