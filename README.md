@@ -3,6 +3,16 @@ This is a SageTV MediaFormatParser plugin that utilizes FFmpeg
 
 ## Installation Instructions
 
+### Plugin repository ###
+
+- From SageTV All Available pluings screen goto general tab
+  - There are two version of the plugin (Media Format Parser Plugin Windows x32 / edia Format Parser Plugin Windows x64)
+  - Install the version that matches the bits of the SageTV server install you have.
+  - Restart is required
+  - There are configuration options available in the plugin configuration screen.  Logging/Disabling internal format detector/etc...
+
+### Manual install ###
+
 - Shutdown sagetv service
 - Backup sagetv folder
 - Download the pre-release version of the Sage.jar and place it into the root of the SageTV folder
