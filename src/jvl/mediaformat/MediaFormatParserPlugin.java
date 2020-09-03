@@ -30,21 +30,102 @@ import sage.media.format.VideoFormat;
  */
 public class MediaFormatParserPlugin implements sage.media.format.FormatParserPlugin, SageTVPlugin 
 {
-    public MediaFormatParserPlugin(sage.SageTVPluginRegistry stpr, boolean reset)
+    private static HashMap<String, String> codecSubsitution;
+    private static HashMap<String, String> formatSubsitution;
+    
+    public MediaFormatParserPlugin(sage.SageTVPluginRegistry stpr, boolean reset){}
+    
+    
+    static
     {
+        codecSubsitution = new HashMap<String, String>();
+        addCodecSubsitution("MP3FLOAT", "MP3");
         
+        formatSubsitution = new HashMap<String, String>();
+        //matroska,webm
+        addFormatSubsitution("MATROSKA,WEBM", "MATROSKA");
     }
     
     public MediaFormatParserPlugin()
     { 
         //This is a blank constructructor called when creating the FormatParserPlugin instance
         System.out.println("Constructing jvl.mediaformat.MediaFormatParserPlugin");
+        System.out.println("MediaFormatParserPlugin Version: " + jvl.mediaformat.MediaFormatParserPluginVersion.getVersion());
+        System.out.println("MediaFormatParserPlugin Build Number: " + jvl.mediaformat.MediaFormatParserPluginVersion.getBuildNumber());
+        System.out.println("MediaFormatParserPlugin Build DateTime: " + jvl.mediaformat.MediaFormatParserPluginVersion.getBuildTime());
         System.out.println("JavaFFmpeg Version: " + jvl.FFmpeg.jni.Version.getVersion());
         System.out.println("JavaFFmpeg Build Number: " + jvl.FFmpeg.jni.Version.getBuildNumber());
         System.out.println("JavaFFmpeg Build DateTime: " + jvl.FFmpeg.jni.Version.getBuildTime());
-        
     }
 
+    
+    /**
+     * Takes a lookup value, and returns the santized value that SageTV expects.
+     * If you try and add a lookup value that already exists, it will be replaced
+     * 
+     * @param lookupValue Value to lookup
+     * @param subsitution Substitution valye to be used
+     */
+    private static void addCodecSubsitution(String lookupValue, String subsitution)
+    {
+        codecSubsitution.put(lookupValue.toUpperCase(), subsitution.toUpperCase());
+    }
+    
+    /**
+     * Takes a lookup value, and returns the santized value that SageTV expects.
+     * If you try and add a lookup value that already exists, it will be replaced
+     * 
+     * @param lookupValue Value to lookup
+     * @param subsitution Substitution value to be used
+     */
+    private static void addFormatSubsitution(String lookupValue, String subsitution)
+    {
+        formatSubsitution.put(lookupValue.toUpperCase(), subsitution.toUpperCase());
+    }
+    
+    /**
+     * First tries the SageTV substitution, then tries our internal substitution.
+     * 
+     * @param codec The lookup value
+     * @return Returns the substituted value, or the input value is a substitue 
+     * was not available
+     */
+    private static String substitueCodec(String codec)
+    {
+        String ret = codec.toUpperCase();
+        
+        ret = FormatParser.substituteName(ret);
+        
+        if(codecSubsitution.containsKey(ret))
+        {
+            ret = codecSubsitution.get(ret);
+        }
+        
+        return ret.toUpperCase();
+    }
+    
+    /**
+     * First tries the SageTV substitution, then tries our internal substitution.
+     * Comparisons are done in a case insensitive way
+     * 
+     * @param format The lookup value
+     * @return Returns the substituted value, or the input value is a substitute 
+     * was not available
+     */
+    private static String substitueFormat(String format)
+    {
+        String ret = format.toUpperCase();
+        
+        ret = FormatParser.substituteName(ret);
+        
+        if(formatSubsitution.containsKey(ret))
+        {
+            ret = formatSubsitution.get(ret);
+        }
+        
+        return ret.toUpperCase();
+    }
+    
     @Override
     public ContainerFormat parseFormat(File file)
     {
@@ -52,6 +133,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
      
         boolean isDebug = Boolean.parseBoolean(this.getProperty("jvl.MediaFormatParserPlugin.Debug", "false"));
         boolean isDisabled = Boolean.parseBoolean(this.getProperty("jvl.MediaFormatParserPlugin.Disable", "false"));
+        
         
         if(isDisabled)
         {
@@ -70,6 +152,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
             format.setFormatName(FormatParser.substituteName(avformat.getFormatName()));
             
             if(isDebug) System.out.println("FormatName: " + avformat.getFormatName());
+            if(isDebug) System.out.println("FormatName (Substitution): " + substitueFormat(avformat.getFormatName()));
             
             long duration = (avformat.getDuration() / 1000);
             
@@ -121,7 +204,8 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
 
                         VideoFormat video = new VideoFormat();
                         if(isDebug) System.out.println("\tVideo Codes: " + avcodec.getName());
-                        video.setFormatName(FormatParser.substituteName(avcodec.getName()));
+                        if(isDebug) System.out.println("\tVideo Codes (Substitution): " + substitueCodec(avcodec.getName()));
+                        video.setFormatName(substitueCodec(avcodec.getName()));
 
                         if(avparm.getAspectRatioString().length() > 0)
                         {
@@ -139,17 +223,17 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                         video.setArNum(arNum);
                         if(isDebug) System.out.println("\tAspect Ration Num: " + avparm.getAspectRatio());
                         video.setAspectRatio((float)avparm.getAspectRatio());
-                        if(isDebug) System.out.println("\tFramerate: " + avstream.getFramerate());
-                        video.setFps((float)avstream.getFramerate());
+                        if(isDebug) System.out.println("\tFramerate: " + avstream.getFramerate().getValue());
+                        video.setFps((float)avstream.getFramerate().getValue());
                         if(isDebug) System.out.println("\tWidth: " + avparm.getWidth());
                         video.setWidth(avparm.getWidth());
                         if(isDebug) System.out.println("\tHeight: " + avparm.getHeight());
                         video.setHeight(avparm.getHeight());
                         if(isDebug) System.out.println("\tInterlaced: " + avparm.getFieldOrder().isInterlaced());
                         video.setInterlaced(avparm.getFieldOrder().isInterlaced());
-                        if(isDebug) System.out.println("\tSetID: " + (100 + i));
+                        if(isDebug) System.out.println("\tSetID: " + avstream.getIDHex());
+                        video.setId(avstream.getIDHex());
                         video.setOrderIndex(i);
-                        video.setId((100 + i) + "");
 
                         //TODO: Add colorspace
 
@@ -169,8 +253,9 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                         if(isDebug) System.out.println("Processing Audio (" + i + ")");
                         AudioFormat audio = new AudioFormat();
 
-                        if(isDebug) System.out.println("\tAudio Codec: " + FormatParser.substituteName(avcodec.getName()));
-                        audio.setFormatName(FormatParser.substituteName(avcodec.getName()));
+                        if(isDebug) System.out.println("\tAudio Codec: " + avcodec.getName());
+                        if(isDebug) System.out.println("\tAudio Codec (Substitution): " + substitueCodec(avcodec.getName()));
+                        audio.setFormatName(substitueCodec(avcodec.getName()));
                         //audio.setAudioTransport(); TODO: See if I can find this 
                         if(isDebug) System.out.println("\tChannels: " + avparm.getChannels());
                         audio.setChannels(avparm.getChannels());
@@ -181,8 +266,8 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                         if(isDebug) System.out.println("\tLanguage: " + avstream.getLanguage());
                         audio.setLanguage(avstream.getLanguage());
                         audio.setOrderIndex(i);
-                        if(isDebug) System.out.println("\tSetID: " + (100 + i));
-                        audio.setId((100 + i) + "");
+                        if(isDebug) System.out.println("\tSetIDHex: " + avstream.getIDHex());
+                        audio.setId(avstream.getIDHex());
 
                         streams.add(audio);
                         }
@@ -193,15 +278,16 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                      SubpictureFormat subpicture = new SubpictureFormat();
 
                      if(isDebug) System.out.println("\tCodec: " + avcodec.getName());
-                     subpicture.setFormatName(FormatParser.substituteName(avcodec.getName()));
+                     if(isDebug) System.out.println("\tCodec (Substitution): " + substitueCodec(avcodec.getName()));
+                     subpicture.setFormatName(substitueCodec(avcodec.getName()));
                      if(isDebug) System.out.println("\tLanguage: " + avstream.getLanguage());
                      subpicture.setLanguage(avstream.getLanguage());
                      if(isDebug) System.out.println("\tForced: " + avstream.isForced());
                      subpicture.setForced(avstream.isForced());
 
                      subpicture.setOrderIndex(i);
-                     if(isDebug) System.out.println("\tSetID: " + (100 + i));
-                     subpicture.setId((100 + i) + "");
+                     if(isDebug) System.out.println("\tSetIDHex: " + avstream.getIDHex());
+                     subpicture.setId(avstream.getIDHex());
                      
                      streams.add(subpicture);
                  }
@@ -230,7 +316,10 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
         catch(Throwable ex)
         {
             System.out.println("There was an unhandled exception processing the file: " + file.getName() + " " + ex.getMessage());
-            ex.printStackTrace();
+            
+             ex.printStackTrace(System.out);
+                
+            //System.out.println(ex.getStackTrace().toString());
         }
         finally
         {
