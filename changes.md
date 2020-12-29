@@ -1,5 +1,14 @@
 # CHANGES
 
+## Next
+
+## v.0.6
+* Fixed a call on format substitution to use the new one in the plugin class
+
+## v.0.5
+* Added format substition for MATROSKA,WEBM because the substituion will be removed from SageTV core
+* Fixed the stream id field to pull from FFmpeg and be formated in hex
+
 ## v.0.3-alpha
 * Added the ability to get thumbnails from media files
 * Added the ability to get metadata from the container

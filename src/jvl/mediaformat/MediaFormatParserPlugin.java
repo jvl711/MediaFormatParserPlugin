@@ -149,7 +149,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
             System.out.println("MediaFormatParserPlugin processing: " + file.getAbsolutePath());
             avformat = AVFormatContext.buildAVFormatInputContext(file.getAbsolutePath());
         
-            format.setFormatName(FormatParser.substituteName(avformat.getFormatName()));
+            format.setFormatName(substitueFormat(avformat.getFormatName()));
             
             if(isDebug) System.out.println("FormatName: " + avformat.getFormatName());
             if(isDebug) System.out.println("FormatName (Substitution): " + substitueFormat(avformat.getFormatName()));

@@ -3,8 +3,8 @@ package jvl.mediaformat;
 
 public class MediaFormatParserPluginVersion
 {
-    private final static String BUILDTIME = "09/03/2020 15:50:56";
-    private final static String BUILDNUMBER = "63";
+    private final static String BUILDTIME = "12/24/2020 11:59:02";
+    private final static String BUILDNUMBER = "72";
     private final static String VERSION = "0.5";
     
     public static String getVersion()

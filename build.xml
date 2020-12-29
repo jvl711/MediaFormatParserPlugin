@@ -12,7 +12,7 @@
     <description>Builds, tests, and runs the project MediaFormatParserPlugin.</description>
     <import file="nbproject/build-impl.xml"/>
     
-    <property name="build.version" value="0.5"/>
+    <property name="build.version" value="0.6"/>
     <buildnumber file="mybuild.number"/>
     <tstamp>
         <format property="build.time" pattern="MM/dd/yyyy HH:mm:ss"/>
@@ -51,7 +51,7 @@
         <filter token="VERSION" value="${build.version}" />
         <filter token="JARMD5" value="${jarmd5}" />
         <copy file="./MediaFormatParserPluginWinx32.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx32.xml" filtering="true"/>
-        <copy file="./MediaFormatParserPluginWinx32.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx64.xml" filtering="true"/>
+        <copy file="./MediaFormatParserPluginWinx64.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx64.xml" filtering="true"/>
         
     </target>
     
