@@ -2,6 +2,9 @@
 
 ## Next
 
+## v.0.7
+* Fixed an issue where it tries to open a codec for a data stream.  This caused it to error and not properly parse
+
 ## v.0.6
 * Fixed a call on format substitution to use the new one in the plugin class
 

@@ -26,6 +26,7 @@
     <MinVersion>0.5</MinVersion>
   </Dependency>
   <ReleaseNotes><![CDATA[
+  0.7 - Fixed an issue where it tries to open a codec for a data stream.  This caused it to error and not properly parse
   0.6 - Fixed a call on format substitution to use the new one in the plugin class
   0.5 - Added format substition for MATROSKA,WEBM because the substituion will be removed from SageTV core
       - Fixed the stream id field to pull from FFmpeg and be formated in hex

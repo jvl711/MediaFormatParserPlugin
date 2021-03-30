@@ -173,32 +173,33 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
             for(int i = 0; i < avformat.getNumberOfStreams(); i++)
             {
                  AVCodecParameters avparm = avformat.getAVCodecParameters(i);
-                 AVCodec avcodec = AVCodec.getAVCodecDecoder(avparm);
-                 AVStream avstream = avformat.getAVStream(i);
-
+                 
                  if(avparm.getCodecType() == AVMediaType.VIDEO)
                  {
-                     if(isDebug) System.out.println("Processing Video (" + i + ")");
-                     if(avstream.isAttachedPicture())
-                     {
-                         //Will need to keep an eye on if we need to ignore this track index.
-                         //ffmpeg treats this as a track, but I am not sure it should be
-                         AVPacket picture = avstream.getAttachedPicturePacket();
+                    AVCodec avcodec = AVCodec.getAVCodecDecoder(avparm);
+                    AVStream avstream = avformat.getAVStream(i);
+
+                    if(isDebug) System.out.println("Processing Video (" + i + ")");
+                    if(avstream.isAttachedPicture())
+                    {
+                        //Will need to keep an eye on if we need to ignore this track index.
+                        //ffmpeg treats this as a track, but I am not sure it should be
+                        AVPacket picture = avstream.getAttachedPicturePacket();
                          
-                         if(picture.getSize() > 0)
-                         {
-                             if(isDebug) System.out.println("\tProcessing Video as Attached Picture.");
+                        if(picture.getSize() > 0)
+                        {
+                            if(isDebug) System.out.println("\tProcessing Video as Attached Picture.");
                              
-                             if(isDebug) System.out.println("\tThumbnailSize: " + picture.getSize());
-                             format.addMetadata("ThumbnailSize", picture.getSize() + "");
-                             if(isDebug) System.out.println("\tThumbnailOffset: " +  picture.getPosition() );
-                             format.addMetadata("ThumbnailOffset", picture.getPosition() + "");
-                             picture.free();
-                         }
+                            if(isDebug) System.out.println("\tThumbnailSize: " + picture.getSize());
+                            format.addMetadata("ThumbnailSize", picture.getSize() + "");
+                            if(isDebug) System.out.println("\tThumbnailOffset: " +  picture.getPosition() );
+                            format.addMetadata("ThumbnailOffset", picture.getPosition() + "");
+                            picture.free();
+                        }
                          
-                     }
-                     else
-                     {
+                    }
+                    else
+                    {
                         int arDen =0;
                         int arNum =0;
 
@@ -239,17 +240,20 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
 
                         streams.add(video);
                      }
-                 }
-                 else if(avparm.getCodecType() == AVMediaType.AUDIO)
-                 {
+                }
+                else if(avparm.getCodecType() == AVMediaType.AUDIO)
+                {
                   
-                     //Work around a weird flac issue where it is counting the wrong number of streams
-                     if(avcodec.getName().equalsIgnoreCase("flac") && avparm.getChannels() == 0 && i > 0)
-                     {
-                        if(isDebug) System.out.println("Ignoring flac audio track with no channels and index > 0 (" + i + ")");
-                     }
-                     else
-                     {
+                    AVCodec avcodec = AVCodec.getAVCodecDecoder(avparm);
+                    AVStream avstream = avformat.getAVStream(i);
+                    
+                    //Work around a weird flac issue where it is counting the wrong number of streams
+                    if(avcodec.getName().equalsIgnoreCase("flac") && avparm.getChannels() == 0 && i > 0)
+                    {
+                       if(isDebug) System.out.println("Ignoring flac audio track with no channels and index > 0 (" + i + ")");
+                    }
+                    else
+                    {
                         if(isDebug) System.out.println("Processing Audio (" + i + ")");
                         AudioFormat audio = new AudioFormat();
 
@@ -270,31 +274,33 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                         audio.setId(avstream.getIDHex());
 
                         streams.add(audio);
-                        }
-                 }
-                 else if(avparm.getCodecType() == AVMediaType.SUBTITLE)
-                 {
-                     if(isDebug) System.out.println("Processing Subtitle (" + i + ")");
-                     SubpictureFormat subpicture = new SubpictureFormat();
+                    }
+                }
+                else if(avparm.getCodecType() == AVMediaType.SUBTITLE)
+                {
+                    AVCodec avcodec = AVCodec.getAVCodecDecoder(avparm);
+                    AVStream avstream = avformat.getAVStream(i);
+                    
+                    if(isDebug) System.out.println("Processing Subtitle (" + i + ")");
+                    SubpictureFormat subpicture = new SubpictureFormat();
 
-                     if(isDebug) System.out.println("\tCodec: " + avcodec.getName());
-                     if(isDebug) System.out.println("\tCodec (Substitution): " + substitueCodec(avcodec.getName()));
-                     subpicture.setFormatName(substitueCodec(avcodec.getName()));
-                     if(isDebug) System.out.println("\tLanguage: " + avstream.getLanguage());
-                     subpicture.setLanguage(avstream.getLanguage());
-                     if(isDebug) System.out.println("\tForced: " + avstream.isForced());
-                     subpicture.setForced(avstream.isForced());
-
-                     subpicture.setOrderIndex(i);
-                     if(isDebug) System.out.println("\tSetIDHex: " + avstream.getIDHex());
-                     subpicture.setId(avstream.getIDHex());
+                    if(isDebug) System.out.println("\tCodec: " + avcodec.getName());
+                    if(isDebug) System.out.println("\tCodec (Substitution): " + substitueCodec(avcodec.getName()));
+                    subpicture.setFormatName(substitueCodec(avcodec.getName()));
+                    if(isDebug) System.out.println("\tLanguage: " + avstream.getLanguage());
+                    subpicture.setLanguage(avstream.getLanguage());
+                    if(isDebug) System.out.println("\tForced: " + avstream.isForced());
+                    subpicture.setForced(avstream.isForced());
+                    subpicture.setOrderIndex(i);
+                    if(isDebug) System.out.println("\tSetIDHex: " + avstream.getIDHex());
+                    subpicture.setId(avstream.getIDHex());
                      
-                     streams.add(subpicture);
-                 }
-                 else if(avparm.getCodecType() == AVMediaType.DATA) { if(isDebug) System.out.println("Processing Data (" + i + ")"); }
-                 else if(avparm.getCodecType() == AVMediaType.ATTACHMENT) { if(isDebug) System.out.println("Processing Attachment (" + i + ")"); }
-                 else if(avparm.getCodecType() == AVMediaType.NB) { if(isDebug) System.out.println("Processing NB (" + i + ")"); }
-                 else { /* Unknown */ if(isDebug) System.out.println("Processing Unknown (" + i + ")"); }
+                    streams.add(subpicture);
+                }
+                else if(avparm.getCodecType() == AVMediaType.DATA) { if(isDebug) System.out.println("Processing Data (" + i + ")"); }
+                else if(avparm.getCodecType() == AVMediaType.ATTACHMENT) { if(isDebug) System.out.println("Processing Attachment (" + i + ")"); }
+                else if(avparm.getCodecType() == AVMediaType.NB) { if(isDebug) System.out.println("Processing NB (" + i + ")"); }
+                else { /* Unknown */ if(isDebug) System.out.println("Processing Unknown (" + i + ")"); }
             }
            
             if(avformat.getMetadataCount() > 0)
@@ -316,10 +322,7 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
         catch(Throwable ex)
         {
             System.out.println("There was an unhandled exception processing the file: " + file.getName() + " " + ex.getMessage());
-            
-             ex.printStackTrace(System.out);
-                
-            //System.out.println(ex.getStackTrace().toString());
+            ex.printStackTrace(System.out);
         }
         finally
         {
