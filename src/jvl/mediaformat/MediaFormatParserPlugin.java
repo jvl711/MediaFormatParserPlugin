@@ -194,7 +194,6 @@ public class MediaFormatParserPlugin implements sage.media.format.FormatParserPl
                             format.addMetadata("ThumbnailSize", picture.getSize() + "");
                             if(isDebug) System.out.println("\tThumbnailOffset: " +  picture.getPosition() );
                             format.addMetadata("ThumbnailOffset", picture.getPosition() + "");
-                            picture.free();
                         }
                          
                     }
