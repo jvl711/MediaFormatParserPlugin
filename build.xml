@@ -10,30 +10,93 @@
 <project name="MediaFormatParserPlugin" default="default" basedir=".">
     
     <description>Builds, tests, and runs the project MediaFormatParserPlugin.</description>
-    <import file="nbproject/build-impl.xml"/>
     
+    <import file="nbproject/build-impl.xml"/>
+    <property name="javaffmpeglibrary.version" value="0.6"/>
     <property name="build.version" value="0.7"/>
     <buildnumber file="mybuild.number"/>
+    
     <tstamp>
         <format property="build.time" pattern="MM/dd/yyyy HH:mm:ss"/>
     </tstamp>
+    
     <tstamp>
         <format property="build.date" pattern="yyyy.MM.dd"/>
     </tstamp>
     
+    <condition property="isWindows">
+            <os family="windows" />
+    </condition>
+
+    <condition property="isUnix">
+        <os family="unix" />
+    </condition>
     
-    <target name="-pre-compile">
+    <target name="-pre-compile" depends="download-dependencies">
         
         <echo>PRE COMPILE</echo>
+        
         <delete file="./src/jvl/mediaformat/MediaFormatParserPluginVersion.java"/>
         
         <filter token="BUILDNUMBER" value="${build.number}" />
         <filter token="BUILDTIME" value="${build.time}" />
         <filter token="VERSION" value="${build.version}" />
+        
         <copy file="./version.template" tofile="./src/jvl/mediaformat/MediaFormatParserPluginVersion.java" filtering="true"/>
         
     </target>
     
+    <target name="download-dependencies" depends="download-dependencies-windows,download-dependencies-linux">
+        
+        <echo message="Completed setting up dependendencies"/>
+    
+    </target>
+    
+   
+    <target name="download-dependencies-windows" if="isWindows" depends="download-dependencies-setup">
+        
+        <echo message="Processing Windows dependencies"/>
+        <echo message="Downloading JavaFFmpegLibrary"/>
+        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryWin64_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibraryWin64_v0.6.zip" usetimestamp="true"/>
+        <echo message="Unzipping JavaFFmpegLibrary"/>
+        <unzip src="./temp/JavaFFmpegLibraryWin64_v${javaffmpeglibrary.version}.zip" dest="libraries/JavaFFmpegLibrary" />
+        
+    </target>
+    
+    
+    <target name="download-dependencies-linux" if="isUnix" depends="download-dependencies-setup">
+        
+        <echo message="Processing Linux dependencies"/>
+        <echo message="Downloading JavaFFmpegLibrary"/>
+        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryLinux_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibraryWin64_v0.6.zip" usetimestamp="true"/>
+        <echo message="Unzipping JavaFFmpegLibrary"/>
+        <unzip src="./temp/JavaFFmpegLibraryLinux_v${javaffmpeglibrary.version}.zip" dest="libraries/JavaFFmpegLibrary" />
+    
+    </target>
+    
+    
+    <target name="download-dependencies-setup">
+        
+        <echo message="Cleaning dependency folders"/>
+        <delete failonerror="false">
+            <fileset dir="libraries/JavaFFmpegLibrary"> 
+                <include name="*"/> 
+            </fileset> 
+        </delete>
+        
+        <delete failonerror="false"> 
+            <fileset dir="libraries/JavaFFmpegLibrary/JARs"> 
+                <include name="*"/> 
+            </fileset> 
+        </delete>
+        
+        <echo message="Creating dependency folders"/>
+        <mkdir dir="temp"/>
+        <mkdir dir="libraries/JavaFFmpegLibrary"/>
+        
+    </target>
+    
+                            
     <target name="-post-jar">
         
         <echo>POST JAR</echo>
@@ -53,6 +116,16 @@
         <copy file="./MediaFormatParserPluginWinx32.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx32.xml" filtering="true"/>
         <copy file="./MediaFormatParserPluginWinx64.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx64.xml" filtering="true"/>
         
+    </target>
+    
+    
+    <target name="version">
+        <echo>Version: ${build.version}</echo>
+    </target>
+    
+    
+    <target name="buildnumber">
+        <echo>BuildNumber: ${build.number}</echo>
     </target>
     
     <!--
