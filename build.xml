@@ -57,9 +57,9 @@
         
         <echo message="Processing Windows dependencies"/>
         <echo message="Downloading JavaFFmpegLibrary"/>
-        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryWin64_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibraryWin64_v0.6.zip" usetimestamp="true"/>
+        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryWin64_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibrary.zip" usetimestamp="true"/>
         <echo message="Unzipping JavaFFmpegLibrary"/>
-        <unzip src="./temp/JavaFFmpegLibraryWin64_v${javaffmpeglibrary.version}.zip" dest="libraries/JavaFFmpegLibrary" />
+        <unzip src="./temp/JavaFFmpegLibrary.zip" dest="libraries/JavaFFmpegLibrary" />
         
     </target>
     
@@ -68,9 +68,9 @@
         
         <echo message="Processing Linux dependencies"/>
         <echo message="Downloading JavaFFmpegLibrary"/>
-        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryLinux_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibraryWin64_v0.6.zip" usetimestamp="true"/>
+        <get src="https://github.com/jvl711/JavaFFmpegLibrary/releases/download/v${javaffmpeglibrary.version}/JavaFFmpegLibraryLinux_v${javaffmpeglibrary.version}.zip" dest="./temp/JavaFFmpegLibrary.zip" usetimestamp="true"/>
         <echo message="Unzipping JavaFFmpegLibrary"/>
-        <unzip src="./temp/JavaFFmpegLibraryLinux_v${javaffmpeglibrary.version}.zip" dest="libraries/JavaFFmpegLibrary" />
+        <unzip src="./temp/JavaFFmpegLibrary.zip" dest="libraries/JavaFFmpegLibrary" />
     
     </target>
     
