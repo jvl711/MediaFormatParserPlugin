@@ -34,7 +34,10 @@ pipeline
         GIT_HUB_USER = credentials('GitHubUser')
         GIT_HUB_TOKEN = credentials('GitHubToken')
 
-        javaffmpegversion = sh (script: "ant -f build.xml -S version | grep \"JavaFFmpegLibraryVersion:\" | awk '{print \$2}'", returnStdout: true).trim()
+        REPO_NAME = env.GIT_URL.replace('.git', '').split('/').last()
+        REPO_OWNER = env.GIT_URL.replace('.git', '').split('/').first()
+
+        javaffmpegversion = sh (script: "ant -f build.xml -S javaffmpeglibrary.version | grep \"JavaFFmpegLibraryVersion:\" | awk '{print \$2}'", returnStdout: true).trim()
         version = sh (script: "ant -f build.xml -S version | grep \"Version:\" | awk '{print \$2}'", returnStdout: true).trim()
         buildnumber = sh (script: "ant -f build.xml -S buildnumber | grep \"BuildNumber:\" | awk '{print \$2}'", returnStdout: true).trim()
     }
@@ -52,6 +55,9 @@ pipeline
                     currentBuild.description = "<B>Version:</B> ${version}<BR>\n"
                     currentBuild.description += "<B>Build Number:</B> ${buildnumber}<BR>\n"
                     currentBuild.description += "<B>JavaFFmpegLibrary Version:</B> ${javaffmpegversion}<BR>\n"
+
+                    echo "REPO_NAME: ${REPO_NAME}"
+                    echo "REPO_OWNER: ${REPO_OWNER}"
                 }
             }
         }
@@ -65,7 +71,7 @@ pipeline
                     sh "ant jar"
 
                     archiveArtifacts artifacts: "dist/MediaFormatParserPlugin.jar", onlyIfSuccessful: true
-                    archiveArtifacts artifacts: "dist/MediaFormatParserPlugin.xml", onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPluginLinux.xml", onlyIfSuccessful: true
                     archiveArtifacts artifacts: "dist/MediaFormatParserPluginWinx32.xml", onlyIfSuccessful: true
                     archiveArtifacts artifacts: "dist/MediaFormatParserPluginWinx64.xml", onlyIfSuccessful: true
                     archiveArtifacts artifacts: "dist/MediaFormatParserPlugin_v${version}.zip", onlyIfSuccessful: true
@@ -135,6 +141,5 @@ pipeline
             }
         }
         
-
     }
 }
