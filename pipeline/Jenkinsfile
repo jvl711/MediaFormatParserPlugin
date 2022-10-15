@@ -33,9 +33,8 @@ pipeline
 
         GIT_HUB_USER = credentials('GitHubUser')
         GIT_HUB_TOKEN = credentials('GitHubToken')
-
-        REPO_NAME = env.GIT_URL.replace('.git', '').split('/').last()
-        REPO_OWNER = env.GIT_URL.replace('.git', '').split('/').first()
+        GIT_REPO_NAME = GIT_URL.replace('.git', '').replace('https://github.com/', '').split('/').last()
+        GIT_REPO_OWNER = GIT_URL.replace('.git', '').replace('https://github.com/', '').split('/').first()
 
         javaffmpegversion = sh (script: "ant -f build.xml -S javaffmpeglibrary.version | grep \"JavaFFmpegLibraryVersion:\" | awk '{print \$2}'", returnStdout: true).trim()
         version = sh (script: "ant -f build.xml -S version | grep \"Version:\" | awk '{print \$2}'", returnStdout: true).trim()
@@ -56,8 +55,6 @@ pipeline
                     currentBuild.description += "<B>Build Number:</B> ${buildnumber}<BR>\n"
                     currentBuild.description += "<B>JavaFFmpegLibrary Version:</B> ${javaffmpegversion}<BR>\n"
 
-                    echo "REPO_NAME: ${REPO_NAME}"
-                    echo "REPO_OWNER: ${REPO_OWNER}"
                 }
             }
         }
@@ -99,15 +96,16 @@ pipeline
             {
                 script
                 {
-                    BRANCH = getBranch()
-                    sh('git remote set-url origin https://${GIT_HUB_TOKEN}@github.com/jvl711/JavaFFmpegLibrary.git')
+                    sh('git remote set-url origin https://${GIT_HUB_TOKEN}@github.com/${GIT_REPO_OWNER}/${GIT_REPO_NAME}.git')
                     sh('git config --global user.email "josh@joshandmonique.com"')
                     sh('git config --global user.name "Joshua Lewis"')
+
                     //Delete the tag remote an local incase it already exists
                     sh("git tag -d v${version} || exit 0")
                     sh("git push --delete origin v${version} || exit 0")
                     sh("git tag v${version}")
                     sh("git push origin v${version}")
+
                     try
                     {
                         CHANGELOG = readFile(file: 'pipeline/releasechangelist')
@@ -117,6 +115,7 @@ pipeline
                         echo "Issue reading pipeline/releasechangelist file: ${err.localizedMessage}"
                         CHANGELOG = ''
                     }
+
                     try
                     {
                         RELEASENAME = readFile(file: 'pipeline/releasename')
@@ -126,17 +125,16 @@ pipeline
                         echo "Issue reading pipeline/releasename file: ${err.localizedMessage}"
                         RELEASENAME = ''
                     }
-                    sh("github-release delete --user jvl711 --repo \"JavaFFmpegLibrary\" --tag v${version} -s ${GIT_HUB_TOKEN} || exit 0")
-                    sh("github-release release -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"${RELEASENAME}\" --description \"${CHANGELOG}\"")
+
+                    sh("github-release delete --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag v${version} -s ${GIT_HUB_TOKEN} || exit 0")
+                    sh("github-release release -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"${RELEASENAME}\" --description \"${CHANGELOG}\"")
                     sh("sleep 5s")
                     //Add apk to the release
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpeg.jar\" --file \"JavaFFmpeg/dist/JavaFFmpeg.jar\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryLinux.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryLinux.xml\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryLinux_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryLinux_v${version}.zip\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWinx32.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWinx32.xml\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWin32_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWin32_v${version}.zip\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWinx64.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWinx64.xml\"")
-                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWin64_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWin64_v${version}.zip\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"MediaFormatParserPlugin.jar\" --file \"dist/MediaFormatParserPlugin.jar\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"MediaFormatParserPluginLinux.xml\" --file \"dist/MediaFormatParserPluginLinux.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"MediaFormatParserPluginWinx32.xml\" --file \"dist/MediaFormatParserPluginWinx32.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"MediaFormatParserPluginWinx64.xml\" --file \"dist/MediaFormatParserPluginWinx64.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user ${GIT_REPO_OWNER} --repo \"${GIT_REPO_NAME}\" --tag \"v${version}\" --name \"MediaFormatParserPlugin_v${version}.zip\" --file \"dist/MediaFormatParserPlugin_v${version}.zip\"")
                 }
             }
         }
