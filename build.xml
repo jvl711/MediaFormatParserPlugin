@@ -113,8 +113,11 @@
         <filter token="BUILDTIME" value="${build.date}" />
         <filter token="VERSION" value="${build.version}" />
         <filter token="JARMD5" value="${jarmd5}" />
-        <copy file="./MediaFormatParserPluginWinx32.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx32.xml" filtering="true"/>
+	<filter token="JAVAFFMPEGLIBRARY_VERSION" value="${javaffmpeglibrary.version}" />
         <copy file="./MediaFormatParserPluginWinx64.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx64.xml" filtering="true"/>
+	<copy file="./MediaFormatParserPluginWinx32.template" tofile="${dist.jar.dir}/MediaFormatParserPluginWinx32.xml" filtering="true"/>
+        <copy file="./MediaFormatParserPluginLinux.template" tofile="${dist.jar.dir}/MediaFormatParserPluginLinux.xml" filtering="true"/>
+	
         
     </target>
     
