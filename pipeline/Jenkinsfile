@@ -73,9 +73,9 @@ pipeline
             }
         }
 
-        when { expression { return params.publishLocal } }
         stage('Publish local')
         {
+            when { expression { return params.publishLocal } }
             steps
             {
                 cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPlugin.jar"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
@@ -86,9 +86,9 @@ pipeline
             }
         }
 	
-        when { expression { return params.publishToGithub } }
         stage('Publish to GitHub')
         {
+            when { expression { return params.publishToGithub } }
             steps
             {
                 script
