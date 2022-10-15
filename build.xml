@@ -121,6 +121,9 @@
         
     </target>
     
+    <target name="javaffmpeglibrary.version">
+        <echo>JavaFFmpegLibraryVersion: ${javaffmpeglibrary.version}</echo>
+    </target>
     
     <target name="version">
         <echo>Version: ${build.version}</echo>

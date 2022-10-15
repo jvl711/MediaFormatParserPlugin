@@ -1,0 +1,140 @@
+
+def getBranch()
+{
+    if(env.GIT_BRANCH.split("/").length > 1)
+    {
+        return env.GIT_BRANCH.split("/")[1];
+    }
+    else
+    {
+        return env.GIT_BRANCH;
+    }
+}
+
+pipeline
+{
+    agent
+    {
+        dockerfile
+        {
+            dir 'pipeline'
+        }
+    }
+
+    parameters
+    {
+        booleanParam(name: 'publishToGithub', defaultValue: false, description: 'Create a Release in Github repository')
+        booleanParam(name: 'publishLocal', defaultValue: false, description: 'Publish code to local CIFS repository')
+    }
+
+    environment
+    {
+        appName = 'MediaFormatParserPlugin'
+
+        GIT_HUB_USER = credentials('GitHubUser')
+        GIT_HUB_TOKEN = credentials('GitHubToken')
+
+        javaffmpegversion = sh (script: "ant -f build.xml -S version | grep \"JavaFFmpegLibraryVersion:\" | awk '{print \$2}'", returnStdout: true).trim()
+        version = sh (script: "ant -f build.xml -S version | grep \"Version:\" | awk '{print \$2}'", returnStdout: true).trim()
+        buildnumber = sh (script: "ant -f build.xml -S buildnumber | grep \"BuildNumber:\" | awk '{print \$2}'", returnStdout: true).trim()
+    }
+
+    stages
+    {
+        stage('Set build informaction')
+        {
+            steps
+            {
+                script
+                {
+                    currentBuild.displayName = "${version}"
+                    
+                    currentBuild.description = "<B>Version:</B> ${version}<BR>\n"
+                    currentBuild.description += "<B>Build Number:</B> ${buildnumber}<BR>\n"
+                    currentBuild.description += "<B>JavaFFmpegLibrary Version:</B> ${javaffmpegversion}<BR>\n"
+                }
+            }
+        }
+
+        stage('Build')
+        {
+            steps
+            {
+                script
+                {                    
+                    sh "ant jar"
+
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPlugin.jar", onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPlugin.xml", onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPluginWinx32.xml", onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPluginWinx64.xml", onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "dist/MediaFormatParserPlugin_v${version}.zip", onlyIfSuccessful: true
+                }
+            }
+        }
+
+        when { expression { return params.publishLocal } }
+        stage('Publish local')
+        {
+            steps
+            {
+                cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPlugin.jar"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
+                cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPluginLinux.xml"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
+                cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPluginWinx32.xml"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
+                cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPluginWinx64.xml"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
+                cifsPublisher(publishers: [[configName: 'Jars', transfers: [[cleanRemote: false, excludes: '', flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: "builds/MediaFormatPlugin/${version}", remoteDirectorySDF: false, removePrefix: "dist", sourceFiles: "dist/MediaFormatParserPlugin_v${version}.zip"]], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true]])
+            }
+        }
+	
+        when { expression { return params.publishToGithub } }
+        stage('Publish to GitHub')
+        {
+            steps
+            {
+                script
+                {
+                    BRANCH = getBranch()
+                    sh('git remote set-url origin https://${GIT_HUB_TOKEN}@github.com/jvl711/JavaFFmpegLibrary.git')
+                    sh('git config --global user.email "josh@joshandmonique.com"')
+                    sh('git config --global user.name "Joshua Lewis"')
+                    //Delete the tag remote an local incase it already exists
+                    sh("git tag -d v${version} || exit 0")
+                    sh("git push --delete origin v${version} || exit 0")
+                    sh("git tag v${version}")
+                    sh("git push origin v${version}")
+                    try
+                    {
+                        CHANGELOG = readFile(file: 'pipeline/releasechangelist')
+                    }
+                    catch (err)
+                    {
+                        echo "Issue reading pipeline/releasechangelist file: ${err.localizedMessage}"
+                        CHANGELOG = ''
+                    }
+                    try
+                    {
+                        RELEASENAME = readFile(file: 'pipeline/releasename')
+                    }
+                    catch (err)
+                    {
+                        echo "Issue reading pipeline/releasename file: ${err.localizedMessage}"
+                        RELEASENAME = ''
+                    }
+                    sh("github-release delete --user jvl711 --repo \"JavaFFmpegLibrary\" --tag v${version} -s ${GIT_HUB_TOKEN} || exit 0")
+                    sh("github-release release -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"${RELEASENAME}\" --description \"${CHANGELOG}\"")
+                    sh("sleep 5s")
+                    //Add apk to the release
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpeg.jar\" --file \"JavaFFmpeg/dist/JavaFFmpeg.jar\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryLinux.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryLinux.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryLinux_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryLinux_v${version}.zip\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWinx32.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWinx32.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWin32_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWin32_v${version}.zip\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWinx64.xml\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWinx64.xml\"")
+                    sh("github-release upload -s ${GIT_HUB_TOKEN} --user jvl711 --repo \"JavaFFmpegLibrary\" --tag \"v${version}\" --name \"JavaFFmpegLibraryWin64_v${version}.zip\" --file \"JavaFFmpeg/dist/JavaFFmpegLibraryWin64_v${version}.zip\"")
+                }
+            }
+        }
+        
+
+    }
+}

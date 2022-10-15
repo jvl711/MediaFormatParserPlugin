@@ -1,0 +1,3 @@
+- Added linux version of the plugin
+- Enhanced the build to pull JavaFFmpegLibrary from Github
+- Added Jenkins Pipeline
