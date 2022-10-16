@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SageTVPlugin>
-  <Name>Media Format Parser Plugin Windows Linux</Name>
+  <Name>Media Format Parser Plugin Linux</Name>
   <Identifier>MediaFormatParserPluginLinux</Identifier>
   <Author>jvl711</Author>
   <CreationDate>2022.16.10</CreationDate>
