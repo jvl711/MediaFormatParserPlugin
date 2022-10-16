@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SageTVPlugin>
   <Name>Media Format Parser Plugin Windows Linux</Name>
-  <Identifier>MediaFormatParserPluginWinx64</Identifier>
+  <Identifier>MediaFormatParserPluginLinux</Identifier>
   <Author>jvl711</Author>
-  <CreationDate>2020.05.07</CreationDate>
+  <CreationDate>2022.16.10</CreationDate>
   <ModificationDate>@BUILDTIME@</ModificationDate>
   <Version beta="false">@VERSION@</Version>
-  <OS>Windows</OS>
+  <OS>Linux</OS>
   <Desktop>false</Desktop>
   <Description>Media parser plugin based on FFmpeg for Linux SageTV</Description>
   <PluginType>Standard</PluginType>
